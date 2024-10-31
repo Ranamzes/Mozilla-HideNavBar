@@ -1,0 +1,5 @@
+@-moz-document domain("youtube.com") {
+	div[style*="position: fixed"][style*="right: 8px"][style*="bottom: 8px"] {
+		display: none !important;
+	}
+}

@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name            NavBar Modifier
 // @author          Re•MART
-// @version         1.1
+// @version         1.8
 // @description     Modifies the nav-bar based on mouse position
 // @include         main
 // @startup         UC.navBarModifier.startup(win);
@@ -12,212 +12,88 @@
 UC.navBarModifier = {
 	navBar: null,
 	isMouseOverMenu: false,
+	whiteList: ["addons.mozilla.org", "dev.azure.com"],
 
 	startup: function (window) {
 		try {
 			if (!window.gNavToolbox) return;
 
-			this.navBar = window.document.getElementById("nav-bar");
-			this.navBar.style.transition =
-				"margin-bottom 400ms, opacity 400ms, visibility 400ms";
+			let navBar = window.document.getElementById("nav-bar");
+			if (!navBar) throw new Error("nav-bar not found");
 
-			let mouseMoveHandler = function (e) {
+			navBar.style.transition = "margin-bottom 400ms, opacity 400ms, visibility 400ms";
+
+			const mouseMoveHandler = (e) => {
 				try {
-					// Get the correct window object.
 					let currentWindow = e.view || window;
-					let currentTab = currentWindow.gBrowser.selectedTab;
-					let currentBrowser = currentTab.linkedBrowser;
-					let currentURL = currentBrowser.currentURI.spec;
+					let currentURL = currentWindow.location.href;
+					const urlBarInput = currentWindow.document.querySelector("#urlbar");
+					const isContextMenuOpen = urlBarInput && urlBarInput.getAttribute("focused") === "true";
 
-					if (currentURL.includes("addons.mozilla.org")) {
+					const y = e.clientY;
+					const isMenuOpen = this.isAnyNonTabMenuOpen(currentWindow);
+					const isCustomizing = currentWindow.document.documentElement.getAttribute("customizing") === "true";
+					const rootStyle = currentWindow.document.documentElement.style;
+
+					const isWhitelisted = this.whiteList.some(domain => currentURL.includes(domain));
+
+					// Проверка на Nimbus Dial с учетом возможного отсутствия gBrowser
+					let isNimbusDial = false;
+					if (currentWindow.gBrowser && currentWindow.gBrowser.selectedTab) {
+						isNimbusDial = currentWindow.gBrowser.selectedTab.label.startsWith("Nimbus Dial");
+					}
+
+					if (y <= 70 || isMenuOpen || this.isMouseOverMenu || isCustomizing || isWhitelisted || isNimbusDial) {
 						navBar.style.setProperty("margin-bottom", "0px");
 						navBar.style.opacity = "1";
 						navBar.style.visibility = "visible";
-						return; // exit the function early
-					}
-
-					const y = e.clientY;
-					const isMenuOpen =
-						currentWindow.document.querySelector(
-							"#navigator-toolbox [open]"
-						) !== null;
-					const isCustomizing =
-						currentWindow.document.documentElement.getAttribute(
-							"customizing"
-						) === "true";
-					if (
-						y <= 70 ||
-						isMenuOpen ||
-						UC.navBarModifier.isMouseOverMenu ||
-						isCustomizing
-					) {
-						UC.navBarModifier.navBar.style.setProperty("margin-bottom", "0px");
-						UC.navBarModifier.navBar.style.opacity = "1";
-						UC.navBarModifier.navBar.style.visibility = "visible";
-					} else if (y > 70 && y < 120) {
-						// Keep existing behavior, but you can add logic here if you want some transition state
-					} else if (y >= 120) {
-						UC.navBarModifier.navBar.style.setProperty(
-							"margin-bottom",
-							"-28px"
-						);
-						UC.navBarModifier.navBar.style.opacity = "0";
-						UC.navBarModifier.navBar.style.visibility = "hidden";
+						rootStyle.setProperty("--tab-filter", "none");
+					} else if (y >= 550) {
+						navBar.style.setProperty("margin-bottom", "-28px");
+						navBar.style.opacity = "0";
+						navBar.style.visibility = "hidden";
+						rootStyle.setProperty("--tab-filter", "contrast(0.57) saturate(0)");
 					}
 				} catch (error) {
-					console.error("Error in mouseMoveHandler: ", error);
+					console.error("Critical error in mouseMoveHandler: ", error);
 				}
 			};
+
+			if (!window.ucHandlers) {
+				window.ucHandlers = {};
+			}
 
 			window.document.addEventListener("mousemove", mouseMoveHandler);
 			window.navBarModifierMouseMoveHandler = mouseMoveHandler;
-			// MutationObserver setup
-			let observer = new MutationObserver(function (mutations) {
-				mutations.forEach(function (mutation) {
-					if (mutation.attributeName === "open") {
-						let isOpen = mutation.target.getAttribute("open") === "true";
-						if (isOpen) {
-							UC.navBarModifier.navBar.style.setProperty(
-								"margin-bottom",
-								"0px"
-							);
-							UC.navBarModifier.navBar.style.opacity = "1";
-							UC.navBarModifier.navBar.style.visibility = "visible";
-						} else {
-							// Logic here if you need to hide the navBar when menus are not open
-						}
-					}
-				});
-			});
 
-			// Start observing
-			observer.observe(window.document.getElementById("navigator-toolbox"), {
-				attributes: true,
-				subtree: true,
-				attributeFilter: ["open"],
-			});
-
-			// Save the observer to disconnect it later
-			this.observer = observer;
-
-			let keydownHandler = function (e) {
-				try {
-					if (e.ctrlKey && e.keyCode === 75) {
-						if (navBar) {
-							navBar.style.setProperty("margin-bottom", "0px");
-							navBar.style.opacity = "1";
-							navBar.style.visibility = "visible";
-						}
-
-						// Set focus to the URL bar after a delay
-						window.setTimeout(function () {
-							// Use the gURLBar object to focus the URL bar and place the caret
-							const urlBarElement = window.gURLBar.querySelector(
-								"moz-input-box.urlbar-input-box"
-							);
-							const inputElement = urlBarElement.querySelector("input");
-
-							if (inputElement) {
-								inputElement.addEventListener("focus", function () {
-									inputElement.setSelectionRange(0, inputElement.value.length);
-								});
-							}
-
-							urlBarElement.focus();
-						}, 400); // Delay of 1000ms
-					}
-				} catch (error) {
-					console.error("Error in keydownHandler: ", error);
-					window.document.removeEventListener("keydown", this.keydownHandler);
-					window.document.addEventListener("keydown", this.keydownHandler);
-				}
-			};
-			window.document.addEventListener("keydown", keydownHandler);
-			window.navBarModifierKeydownHandler = keydownHandler;
-
-			const menu = window.document.querySelector(
-				"#urlbar-input-container menupopup.textbox-contextmenu"
-			);
-			if (menu) {
-				menu.addEventListener("mouseover", function () {
-					UC.navBarModifier.isMouseOverMenu = true;
-				});
-				menu.addEventListener("mouseout", function () {
-					UC.navBarModifier.isMouseOverMenu = false;
-				});
-			}
-
-			const toolbarMenu = window.document.getElementById(
-				"toolbar-context-menu"
-			);
-			if (toolbarMenu) {
-				toolbarMenu.addEventListener("mouseover", function () {
-					UC.navBarModifier.isMouseOverMenu = true;
-				});
-				toolbarMenu.addEventListener("mouseout", function () {
-					UC.navBarModifier.isMouseOverMenu = false;
-				});
-			}
 		} catch (error) {
-			console.error("Error in startup: ", error);
+			console.error("Critical error in startup: ", error);
 		}
 	},
 
 	shutdown: function (window) {
-		// console.log("Shutdown method called for a window");
-		try {
-			if (!window.gNavToolbox) return;
-			window.document.removeEventListener("mousemove", this.mouseMoveHandler);
-			// Disconnect the observer
-			if (this.observer) {
-				this.observer.disconnect();
-			}
-			if (window.navBarModifierMouseMoveHandler) {
-				window.document.removeEventListener(
-					"mousemove",
-					window.navBarModifierMouseMoveHandler
-				);
-			}
-			if (window.navBarModifierKeydownHandler) {
-				window.document.removeEventListener(
-					"keydown",
-					window.navBarModifierKeydownHandler
-				);
-			}
-		} catch (error) {
-			console.error("Error in shutdown: ", error);
+		if (window.navBarModifierMouseMoveHandler) {
+			window.document.removeEventListener("mousemove", window.navBarModifierMouseMoveHandler);
+			delete window.navBarModifierMouseMoveHandler;
 		}
+	},
+
+	isAnyNonTabMenuOpen: function (window) {
+		const openElements = window.document.querySelectorAll("#navigator-toolbox [open]");
+		for (let element of openElements) {
+			if (!element.classList.contains("tabbrowser-tab")) {
+				return true;
+			}
+		}
+		return false;
 	},
 
 	init: function () {
-		// console.log("Init method called");
-
-		Services.wm.addListener({
-			onOpenWindow: function (aWindow) {
-				// console.log("New window detected");
-				var domWindow = aWindow
-					.QueryInterface(Ci.nsIInterfaceRequestor)
-					.getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
-				domWindow.addEventListener("load", function () {
-					// console.log("Applying startup method to new window");
-					UC.navBarModifier.startup(domWindow);
-				});
-			},
-			onCloseWindow: function (aWindow) {
-				// console.log("Window close detected");
-				UC.navBarModifier.shutdown(aWindow);
-			},
-			onWindowTitleChange: function (aWindow, aTitle) {},
-		});
-
-		var windows = Services.wm.getEnumerator("navigator:browser");
+		const windows = Services.wm.getEnumerator("navigator:browser");
 		while (windows.hasMoreElements()) {
-			let domWindow = windows.getNext();
-			if (domWindow instanceof Ci.nsIDOMWindow) {
-				this.startup(domWindow);
-			}
+			this.startup(windows.getNext());
 		}
-	},
+	}
 };
 
 UC.navBarModifier.init();

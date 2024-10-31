@@ -69,10 +69,6 @@ toolbarbutton#alltabs-button {
 	height: 27px !important;
 	margin-top: 3px;
 }
-#tabs-newtab-button,
-#TabsToolbar #new-tab-button {
-	transform: translateY(-4px) !important;
-}
 #urlbar[breakout] {
 	transform: translateY(3px) !important;
 }
@@ -82,6 +78,9 @@ toolbarbutton#alltabs-button {
 .titlebar-button {
 	padding: 6px 17px !important;
 	max-height: 24px !important;
+}
+#urlbar-container:not([breakout-extend]) {
+	margin-top: -1px;
 }
 #scrollbutton-up,
 #scrollbutton-down {
@@ -100,9 +99,9 @@ toolbarbutton#alltabs-button {
 #urlbar-label-box {
 	background-color: transparent !important;
 }
-#urlbar-background,
-#searchbar {
-	border: 0px solid var(--toolbar-field-border-color) !important;
+#urlbar:-moz-lwtheme > #urlbar-background,
+#searchbar:-moz-lwtheme {
+	background-color: transparent !important;
 }
 #urlbar-background,
 #searchbar {
@@ -112,9 +111,9 @@ toolbarbutton#alltabs-button {
 #searchbar:focus-within:-moz-lwtheme {
 	background-color: var(--lwt-toolbar-field-focus) !important;
 }
-#urlbar:-moz-lwtheme > #urlbar-background,
-#searchbar:-moz-lwtheme {
-	background-color: transparent !important;
+#urlbar[focused]:not([suppress-focus-border]) > #urlbar-background,
+#searchbar:focus-within {
+	outline-color: rgba(0, 0, 0, 0) !important;
 }
 #alltabs-button > .toolbarbutton-badge-stack > .toolbarbutton-icon {
 	transform: translateY(-3px);
@@ -130,14 +129,14 @@ toolbarbutton#alltabs-button {
 #urlbar-input-container {
 	outline: none;
 }
+.urlbar-input-container {
+	border: 1px solid transparent !important;
+}
 #PlacesToolbarItems > .bookmark-item .toolbarbutton-text {
 	display: none !important;
 }
 #PlacesToolbarItems > .bookmark-item {
 	padding-right: 0 !important;
-}
-#TabsToolbar-customization-target {
-	margin-bottom: -10px;
 }
 toolbarbutton .toolbarbutton-icon[label="Firefox View"] {
 	margin-top: -6px;
@@ -153,7 +152,9 @@ toolbarbutton .toolbarbutton-icon[label="Firefox View"] {
 .bookmark-item[label="Kali Forums"]:hover {
 	background-color: rgb(215, 215, 215) !important;
 }
-
+#urlbar[open] {
+	background-color: rgba(0, 0, 0, 0.7) !important;
+}
 #titlebar {
 	margin-bottom: -2px;
 }
@@ -247,9 +248,18 @@ toolbarbutton {
 	-webkit-filter: var(--tab-filter);
 	filter: var(--tab-filter);
 }
-/* #urlbar:is([focused="true"], [open]), #searchbar:focus-within {
-	background-color: rgba(0, 0, 0, 0.79) !important;
+#TabsToolbar-customization-target {
+	margin-bottom: -10px !important;
 }
-#urlbar {
-
-} */
+#new-tab-button {
+	margin-top: -8px !important;
+}
+#urlbar-background,
+#searchbar {
+	border: 0px solid var(--toolbar-field-border-color) !important;
+	background-color: rgba(0, 0, 0, 0) !important;
+	outline-color: transparent !important;
+}
+#main-window #urlbar[open] > #urlbar-background {
+	background-color: rgba(0, 0, 0, 0.7) !important;
+}
