@@ -99,17 +99,9 @@ toolbarbutton#alltabs-button {
 #urlbar-label-box {
 	background-color: transparent !important;
 }
-#urlbar:-moz-lwtheme > #urlbar-background,
-#searchbar:-moz-lwtheme {
-	background-color: transparent !important;
-}
 #urlbar-background,
 #searchbar {
 	border-radius: 15px !important;
-}
-#urlbar:is([focused="true"], [open]):-moz-lwtheme > #urlbar-background,
-#searchbar:focus-within:-moz-lwtheme {
-	background-color: var(--lwt-toolbar-field-focus) !important;
 }
 #urlbar[focused]:not([suppress-focus-border]) > #urlbar-background,
 #searchbar:focus-within {
@@ -117,14 +109,6 @@ toolbarbutton#alltabs-button {
 }
 #alltabs-button > .toolbarbutton-badge-stack > .toolbarbutton-icon {
 	transform: translateY(-3px);
-}
-#urlbar[breakout] {
-	background-color: rgba(0, 0, 0, 0) !important;
-	border-radius: 10px;
-	--toolbar-field-focus-border-color: transparent !important;
-}
-#urlbar:focus-within {
-	background-color: rgba(0, 0, 0, 0.75) !important;
 }
 #urlbar-input-container {
 	outline: none;
@@ -151,9 +135,6 @@ toolbarbutton .toolbarbutton-icon[label="Firefox View"] {
 .bookmark-item[label="Kali Tools"]:hover,
 .bookmark-item[label="Kali Forums"]:hover {
 	background-color: rgb(215, 215, 215) !important;
-}
-#urlbar[open] {
-	background-color: rgba(0, 0, 0, 0.7) !important;
 }
 #titlebar {
 	margin-bottom: -2px;
@@ -257,9 +238,17 @@ toolbarbutton {
 #urlbar-background,
 #searchbar {
 	border: 0px solid var(--toolbar-field-border-color) !important;
-	background-color: rgba(0, 0, 0, 0) !important;
 	outline-color: transparent !important;
 }
-#main-window #urlbar[open] > #urlbar-background {
+#urlbar-background {
+	background-color: transparent !important;
+}
+#urlbar:not([open]) {
+	background-color: rgba(0, 0, 0, 0) !important;
+}
+#urlbar[open] {
 	background-color: rgba(0, 0, 0, 0.7) !important;
+}
+#urlbar {
+	transition: display 0ms 350ms;
 }

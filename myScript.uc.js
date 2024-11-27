@@ -48,11 +48,19 @@ UC.navBarModifier = {
 						navBar.style.opacity = "1";
 						navBar.style.visibility = "visible";
 						rootStyle.setProperty("--tab-filter", "none");
+						const urlBar = currentWindow.document.getElementById("urlbar");
+						if (urlBar) {
+							urlBar.style.display = "block";
+						}
 					} else if (y >= 550) {
 						navBar.style.setProperty("margin-bottom", "-28px");
 						navBar.style.opacity = "0";
 						navBar.style.visibility = "hidden";
 						rootStyle.setProperty("--tab-filter", "contrast(0.57) saturate(0)");
+						const urlBar = currentWindow.document.getElementById("urlbar");
+						if (urlBar) {
+							urlBar.style.display = "none";
+						}
 					}
 				} catch (error) {
 					console.error("Critical error in mouseMoveHandler: ", error);
